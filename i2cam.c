@@ -25,6 +25,9 @@
 
 #define TWI_ADDRESS 0x4c
 
+#define SERVO_MIN 560L
+#define SERVO_MAX 2500L
+
 enum btn_state {
 	RELEASED,
 	HALF,
@@ -34,6 +37,7 @@ enum btn_state {
 static volatile struct {
 	uint8_t enabled;
 	uint16_t interval;
+	uint8_t servo_pos[2];
 } cam;
 
 static void waylay(uint16_t *time) {
@@ -61,6 +65,13 @@ int main(void) {
 
 	LED_DDR |= 1<<LED_BIT;
 
+	DDRB |= (1<<PB4);
+
+	/* configure timer for PWM */
+	ICR1 = 20000;
+	TCCR1A = (1<<COM1A1)|(1<<COM1B1)|(1<<WGM11);
+	TCCR1B = (1<<WGM13)|(1<<WGM12)|(1<<CS11);
+
 	cam.enabled = 0;
 	cam.interval = SNAPSHOT_INTERVAL;
 
@@ -83,6 +94,8 @@ int main(void) {
 		} else {
 			LED_PORT &= ~(1<<LED_BIT);
 		}
+
+		OCR1B = SERVO_MIN+((uint16_t)cam.servo_pos*(SERVO_MAX-SERVO_MIN)/255);
 	}
 }
 
