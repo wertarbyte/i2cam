@@ -254,6 +254,7 @@ static volatile void    *tx_window_start;
 static volatile void    *tx_window_end;
 static volatile void    *tx_window_cur;
 static volatile size_t  tx_window_offset;
+static uint8_t got_offset;
 
 /********************************************************************************
 
@@ -451,6 +452,9 @@ ISR( USI_OVERFLOW_VECTOR )
         else
         {
           overflowState = USI_SLAVE_REQUEST_DATA;
+          // write mode, reset the buffers
+          got_offset = 0;
+          tx_window_offset = 0;
         } // end if
         tx_window_cur = tx_window_start+tx_window_offset;
         /* the next request will start at 0 again */
@@ -514,7 +518,14 @@ ISR( USI_OVERFLOW_VECTOR )
     // next USI_SLAVE_REQUEST_DATA
     case USI_SLAVE_GET_DATA_AND_SEND_ACK:
       overflowState = USI_SLAVE_REQUEST_DATA;
-      if ( tx_window_cur >= tx_window_start && tx_window_cur < tx_window_end )
+      if (!got_offset)
+      {
+        /* save the offset in case we switching to read */
+        tx_window_offset = USIDR;
+        tx_window_cur += tx_window_offset;
+        got_offset = 1;
+      }
+      else if ( tx_window_cur >= tx_window_start && tx_window_cur < tx_window_end )
       {
         *(uint8_t*)(tx_window_cur) = USIDR;
 	tx_window_cur++;
