@@ -28,6 +28,8 @@
 #define SERVO_MIN 560L
 #define SERVO_MAX 2500L
 
+#define I2C_WRITE_CALLBACK i2c_write_callback
+
 enum btn_state {
 	RELEASED,
 	HALF,
@@ -40,7 +42,15 @@ static volatile struct {
 	uint8_t servo_pos[2];
 } cam;
 
-static void waylay(uint16_t *time) {
+void i2c_write_callback(volatile uint8_t *ptr) {
+	if (ptr == &cam.servo_pos[0]) {
+		OCR1B = SERVO_MIN+((uint16_t)cam.servo_pos[0]*(SERVO_MAX-SERVO_MIN)/255);
+	} else if (ptr == &cam.servo_pos[1]) {
+		OCR1A = SERVO_MIN+((uint16_t)cam.servo_pos[1]*(SERVO_MAX-SERVO_MIN)/255);
+	}
+}
+
+static void waylay(volatile uint16_t *time) {
 	uint16_t cnt = 0;
 	while (cnt++ < *time) _delay_ms(1);
 }
@@ -95,7 +105,8 @@ int main(void) {
 			LED_PORT &= ~(1<<LED_BIT);
 		}
 
-		OCR1B = SERVO_MIN+((uint16_t)cam.servo_pos*(SERVO_MAX-SERVO_MIN)/255);
+		OCR1B = SERVO_MIN+((uint16_t)cam.servo_pos[0]*(SERVO_MAX-SERVO_MIN)/255);
+		OCR1A = SERVO_MIN+((uint16_t)cam.servo_pos[1]*(SERVO_MAX-SERVO_MIN)/255);
 	}
 }
 

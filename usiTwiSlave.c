@@ -44,7 +44,11 @@ Change Activity:
 #include <avr/interrupt.h>
 #include "usiTwiSlave.h"
 
+#define I2C_WRITE_CALLBACK i2c_write_callback
 
+#if defined(I2C_WRITE_CALLBACK)
+extern void I2C_WRITE_CALLBACK(volatile uint8_t *ptr);
+#endif
 
 /********************************************************************************
 
@@ -337,7 +341,7 @@ usiTwiSlaveInit(
 
 
 void usiTwiSetTransmitWindow(
-  void *start,
+  volatile void *start,
   size_t size
 )
 {
@@ -528,6 +532,9 @@ ISR( USI_OVERFLOW_VECTOR )
       else if ( tx_window_cur >= tx_window_start && tx_window_cur < tx_window_end )
       {
         *(uint8_t*)(tx_window_cur) = USIDR;
+        #if defined(I2C_WRITE_CALLBACK)
+        I2C_WRITE_CALLBACK(tx_window_cur);
+        #endif
 	tx_window_cur++;
       }
       else

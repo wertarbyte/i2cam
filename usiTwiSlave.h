@@ -53,7 +53,6 @@ Change Activity:
 ********************************************************************************/
 
 void    usiTwiSlaveInit( uint8_t );
-void    usiTwiSlaveSetTrap( void (*trap)(void));
-void    usiTwiSetTransmitWindow( void*, size_t );
+void    usiTwiSetTransmitWindow( volatile void*, size_t );
 
 #endif  // ifndef _USI_TWI_SLAVE_H_
