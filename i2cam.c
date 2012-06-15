@@ -75,7 +75,7 @@ int main(void) {
 
 	LED_DDR |= 1<<LED_BIT;
 
-	DDRB |= (1<<PB4);
+	DDRB |= (1<<PB3 | 1<<PB4);
 
 	/* configure timer for PWM */
 	ICR1 = 20000;
