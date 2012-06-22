@@ -84,6 +84,8 @@ int main(void) {
 
 	cam.enabled = 0;
 	cam.interval = SNAPSHOT_INTERVAL;
+	cam.servo_pos[0] = 127;
+	cam.servo_pos[1] = 127;
 
 	usiTwiSlaveInit(TWI_ADDRESS);
 	usiTwiSetTransmitWindow( &cam, sizeof(cam) );
@@ -91,6 +93,9 @@ int main(void) {
 	sei();
 
 	while (1) {
+		OCR1B = SERVO_MIN+((uint16_t)cam.servo_pos[0]*(SERVO_MAX-SERVO_MIN)/255);
+		OCR1A = SERVO_MIN+((uint16_t)cam.servo_pos[1]*(SERVO_MAX-SERVO_MIN)/255);
+
 		if (cam.enabled) {
 			LED_PORT |= (1<<LED_BIT);
 			waylay(&cam.interval);
@@ -105,8 +110,6 @@ int main(void) {
 			LED_PORT &= ~(1<<LED_BIT);
 		}
 
-		OCR1B = SERVO_MIN+((uint16_t)cam.servo_pos[0]*(SERVO_MAX-SERVO_MIN)/255);
-		OCR1A = SERVO_MIN+((uint16_t)cam.servo_pos[1]*(SERVO_MAX-SERVO_MIN)/255);
 	}
 }
 
